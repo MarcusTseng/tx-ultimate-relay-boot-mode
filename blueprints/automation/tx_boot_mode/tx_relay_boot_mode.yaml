@@ -1,25 +1,26 @@
 blueprint:
-  name: "Enhanced Boot Restorer for TX-Ultimate-Easy"
+  name: "TX-Ultimate-Easy Enhanced Boot Restorer"
   description: >
-    This blueprint enhances the **TX-Ultimate-Easy** (by edwardtfn) functionality. 
-    While TX-Ultimate-Easy manages the hardware, this blueprint provides a 
-    dynamic Home Assistant management layer to:
+    This blueprint acts as a dynamic management layer for the **TX-Ultimate-Easy** (by edwardtfn). 
+    While the ESPHome firmware handles local hardware logic, this blueprint provides:
     
-    1. Restore 1-4 channel relay states based on UI-editable Helpers (input_select).
-    2. Synchronize states specifically when the device recovers from an 'unavailable' status.
-    3. Automatically turn off the status indicator light after the boot sequence.
-    
-    Note: Requires 'input_select' helpers for each channel with 'on' and 'off' options.
-  version: 1.1.0
+    1. **Dynamic Boot Logic**: Change relay boot states (on/off) via HA UI without re-flashing.
+    2. **Reconnection Sync**: Specifically handles state restoration when the device recovers from 'unavailable'.
+    3. **Status Cleanup**: Automatically turns off the LED indicator/ring after the sequence completes.
+    4. **Network Optimization**: Only sends commands if the current state differs from the target.
+
+    **Note**: This blueprint's logic and structure were developed and optimized with the assistance of AI (Gemini).
+    Supports 1 to 4 channels. Unused channels can be left blank.
+  version: 1.1.2
   domain: automation
-  source_url: https://github.com/YOUR_USERNAME/YOUR_REPO/blob/main/relay_boot_restorer.yaml
-  author: YourName
+  source_url: https://github.com/MarcusTseng/tx-ultimate-relay-boot-mode/blob/main/tx_relay_boot_mode.yaml
+  author: Marcus Tseng
   homeassistant:
     min_version: 2023.8.0
   input:
     trigger_sensor:
       name: Device Connectivity Sensor
-      description: The 'Device Name' sensor from your TX-Ultimate-Easy entity list.
+      description: The 'Device Name' sensor provided by TX-Ultimate-Easy (e.g., sensor.t5_device_name).
       selector:
         entity:
           domain: sensor
@@ -32,7 +33,7 @@ blueprint:
           domain: switch
     relay_1_mode:
       name: Relay 1 Boot Mode Helper
-      description: Create a helper with options 'on' and 'off'.
+      description: input_select helper with options 'on' and 'off'.
       selector:
         entity:
           domain: input_select
@@ -104,8 +105,133 @@ trigger:
 action:
   - delay: "00:00:05"
   
-  # Logic for Channel 1 to 4 remains the same...
-  # [Omitted here for brevity, keep the logic from the previous turn]
+  # --- Channel 1 ---
+  - choose:
+      - conditions:
+          - condition: state
+            entity_id: !input relay_1_mode
+            state: "on"
+          - condition: not
+            conditions:
+              - condition: state
+                entity_id: !input relay_1_switch
+                state: "on"
+        sequence:
+          - service: switch.turn_on
+            target:
+              entity_id: !input relay_1_switch
+      - conditions:
+          - condition: state
+            entity_id: !input relay_1_mode
+            state: "off"
+          - condition: not
+            conditions:
+              - condition: state
+                entity_id: !input relay_1_switch
+                state: "off"
+        sequence:
+          - service: switch.turn_off
+            target:
+              entity_id: !input relay_1_switch
+
+  # --- Channel 2 ---
+  - if:
+      - condition: template
+        value_template: "{{ r2_s != none and r2_s != [] }}"
+    then:
+      - choose:
+          - conditions:
+              - condition: state
+                entity_id: !input relay_2_mode
+                state: "on"
+              - condition: not
+                conditions:
+                  - condition: state
+                    entity_id: !input relay_2_switch
+                    state: "on"
+            sequence:
+              - service: switch.turn_on
+                target:
+                  entity_id: !input relay_2_switch
+          - conditions:
+              - condition: state
+                entity_id: !input relay_2_mode
+                state: "off"
+              - condition: not
+                conditions:
+                  - condition: state
+                    entity_id: !input relay_2_switch
+                    state: "off"
+            sequence:
+              - service: switch.turn_off
+                target:
+                  entity_id: !input relay_2_switch
+
+  # --- Channel 3 ---
+  - if:
+      - condition: template
+        value_template: "{{ r3_s != none and r3_s != [] }}"
+    then:
+      - choose:
+          - conditions:
+              - condition: state
+                entity_id: !input relay_3_mode
+                state: "on"
+              - condition: not
+                conditions:
+                  - condition: state
+                    entity_id: !input relay_3_switch
+                    state: "on"
+            sequence:
+              - service: switch.turn_on
+                target:
+                  entity_id: !input relay_3_switch
+          - conditions:
+              - condition: state
+                entity_id: !input relay_3_mode
+                state: "off"
+              - condition: not
+                conditions:
+                  - condition: state
+                    entity_id: !input relay_3_switch
+                    state: "off"
+            sequence:
+              - service: switch.turn_off
+                target:
+                  entity_id: !input relay_3_switch
+
+  # --- Channel 4 ---
+  - if:
+      - condition: template
+        value_template: "{{ r4_s != none and r4_s != [] }}"
+    then:
+      - choose:
+          - conditions:
+              - condition: state
+                entity_id: !input relay_4_mode
+                state: "on"
+              - condition: not
+                conditions:
+                  - condition: state
+                    entity_id: !input relay_4_switch
+                    state: "on"
+            sequence:
+              - service: switch.turn_on
+                target:
+                  entity_id: !input relay_4_switch
+          - conditions:
+              - condition: state
+                entity_id: !input relay_4_mode
+                state: "off"
+              - condition: not
+                conditions:
+                  - condition: state
+                    entity_id: !input relay_4_switch
+                    state: "off"
+            sequence:
+              - service: switch.turn_off
+                target:
+                  entity_id: !input relay_4_switch
 
   - if:
       - condition: template
