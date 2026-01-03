@@ -1,4 +1,3 @@
-
 blueprint:
   name: TX Ultimate relay boot mode (1–4 gang, fixed naming)
   description: >
@@ -147,4 +146,3 @@ action:
             target:
               entity_id: "{{ relay_4 }}"
     default: []
---- END OF FILE ---
