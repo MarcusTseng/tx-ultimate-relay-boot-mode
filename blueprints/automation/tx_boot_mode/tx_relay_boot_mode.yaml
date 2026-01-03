@@ -105,12 +105,12 @@ blueprint:
 mode: restart
 
 # Trigger when T5 comes online: device_name sensor from unavailable to any state
-trigger:
-  - platform: state
-    entity_id: !input device_state_entity
+triggers:
+  - entity_id: !input device_state_entity
     from:
       - unavailable
     to: null
+    trigger: state
 
 variables:
   gang_count: "{{ inputs.gang_count | int(4) }}"
