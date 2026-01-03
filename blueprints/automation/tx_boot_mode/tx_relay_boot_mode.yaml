@@ -13,7 +13,7 @@ blueprint:
     **Note**: This blueprint's logic and structure were developed and optimized with the assistance of AI (Gemini).
     Supports 1 to 4 channels. Unused channels can be left blank.
   domain: automation
-  source_url: https://github.com/MarcusTseng/tx-ultimate-relay-boot-mode/blob/main/tx_relay_boot_mode.yaml
+  source_url: https://github.com/MarcusTseng/tx-ultimate-relay-boot-mode/blob/main/blueprints/automation/tx_boot_mode/tx_relay_boot_mode.yaml
   author: Marcus Tseng
   homeassistant:
     min_version: 2023.8.0
