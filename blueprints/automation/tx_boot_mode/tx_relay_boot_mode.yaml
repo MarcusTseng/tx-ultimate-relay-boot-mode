@@ -8,7 +8,7 @@ blueprint:
       - "on"
       - "off"
   domain: automation
-  author: MarcusTseng
+  author: you
 
   input:
     device_state_entity:
