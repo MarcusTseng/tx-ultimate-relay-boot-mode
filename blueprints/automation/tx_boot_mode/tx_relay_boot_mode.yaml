@@ -1,204 +1,230 @@
 blueprint:
-  name: TX Ultimate relay boot mode (1–4 gang)
+  name: Multi-channel Relay Boot State Restorer (Flexible 1-4 Gang)
   description: >
-    Set per-relay boot behavior (ON / OFF) for a Sonoff TX Ultimate
-    using input_select helpers. Supports 1/2/3/4‑gang devices.
-    Triggers when T5 comes online (device_name sensor from unavailable to any state).
-    For each relay, create an input_select with options:
-      - "on"
-      - "off"
+    Automatically restores relay states based on input_select at boot. 
+    Supports 1 to 4 channels. Leave unused channels blank.
   domain: automation
-  author: you
-
   input:
-    device_state_entity:
-      name: T5 device_name sensor
-      description: >
-        Sensor entity like sensor.t5_4c_03_device_name.
-        Automation triggers when this changes from unavailable to any state.
+    trigger_sensor:
+      name: Device Connection Status Sensor
+      description: The sensor used to trigger the automation (e.g., Device Name Sensor).
       selector:
         entity:
           domain: sensor
-
-    gang_count:
-      name: Gang count
-      description: How many relays (gangs) does this switch have
-      default: "4"
-      selector:
-        select:
-          options:
-            - "1"
-            - "2"
-            - "3"
-            - "4"
-
-    relay_1:
-      name: Relay 1 entity
-      description: First relay/light (required)
+    
+    # Relay 1 (Required)
+    relay_1_switch:
+      name: Relay 1 Switch
       selector:
         entity:
-          domain:
-            - switch
-            - light
-
-    relay_2:
-      name: Relay 2 entity
-      description: Second relay/light (leave empty if 1‑gang)
-      default: ""
-      selector:
-        entity:
-          domain:
-            - switch
-            - light
-
-    relay_3:
-      name: Relay 3 entity
-      description: Third relay/light (leave empty if 1/2‑gang)
-      default: ""
-      selector:
-        entity:
-          domain:
-            - switch
-            - light
-
-    relay_4:
-      name: Relay 4 entity
-      description: Fourth relay/light (leave empty if 1/2/3‑gang)
-      default: ""
-      selector:
-        entity:
-          domain:
-            - switch
-            - light
-
-    helper_1:
-      name: Relay 1 boot-mode helper
-      description: input_select for relay 1 boot mode (values must be "on" or "off")
+          domain: switch
+    relay_1_mode:
+      name: Relay 1 Boot Mode Input
       selector:
         entity:
           domain: input_select
 
-    helper_2:
-      name: Relay 2 boot-mode helper
-      description: input_select for relay 2 boot mode (optional)
-      default: ""
+    # Relay 2 (Optional)
+    relay_2_switch:
+      name: Relay 2 Switch (Optional)
+      default: []
+      selector:
+        entity:
+          domain: switch
+    relay_2_mode:
+      name: Relay 2 Boot Mode Input (Optional)
+      default: []
       selector:
         entity:
           domain: input_select
 
-    helper_3:
-      name: Relay 3 boot-mode helper
-      description: input_select for relay 3 boot mode (optional)
-      default: ""
+    # Relay 3 (Optional)
+    relay_3_switch:
+      name: Relay 3 Switch (Optional)
+      default: []
+      selector:
+        entity:
+          domain: switch
+    relay_3_mode:
+      name: Relay 3 Boot Mode Input (Optional)
+      default: []
       selector:
         entity:
           domain: input_select
 
-    helper_4:
-      name: Relay 4 boot-mode helper
-      description: input_select for relay 4 boot mode (optional)
-      default: ""
+    # Relay 4 (Optional)
+    relay_4_switch:
+      name: Relay 4 Switch (Optional)
+      default: []
+      selector:
+        entity:
+          domain: switch
+    relay_4_mode:
+      name: Relay 4 Boot Mode Input (Optional)
+      default: []
       selector:
         entity:
           domain: input_select
+
+    # Status Light (Optional)
+    status_light:
+      name: Status Indicator Light (Optional)
+      default: []
+      selector:
+        entity:
+          domain: light
 
 mode: restart
 
+# Define variables to check if optional inputs are provided
+variables:
+  r2_s: !input relay_2_switch
+  r3_s: !input relay_3_switch
+  r4_s: !input relay_4_switch
+  s_light: !input status_light
+
 trigger:
   - platform: state
-    entity_id: !input device_state_entity
-    from:
-      - unavailable
-    to: null
-
-variables:
-  gang_count: "{{ inputs.gang_count | int(4) }}"
-  relay_1: !input relay_1
-  relay_2: !input relay_2
-  relay_3: !input relay_3
-  relay_4: !input relay_4
-  helper_1: !input helper_1
-  helper_2: !input helper_2
-  helper_3: !input helper_3
-  helper_4: !input helper_4
+    entity_id: !input trigger_sensor
+    from: "unavailable"
 
 action:
-  - delay: "00:00:03"
-
-  # ------- Relay 1 -------
+  - delay: "00:00:05"
+  
+  # --- Channel 1 (Always Executed) ---
   - choose:
       - conditions:
-          - condition: template
-            value_template: "{{ states(helper_1) == 'on' and states(relay_1) != 'on' }}"
+          - condition: state
+            entity_id: !input relay_1_mode
+            state: "on"
+          - condition: not
+            conditions:
+              - condition: state
+                entity_id: !input relay_1_switch
+                state: "on"
         sequence:
-          - service: homeassistant.turn_on
+          - service: switch.turn_on
             target:
-              entity_id: "{{ relay_1 }}"
+              entity_id: !input relay_1_switch
       - conditions:
-          - condition: template
-            value_template: "{{ states(helper_1) == 'off' and states(relay_1) != 'off' }}"
+          - condition: state
+            entity_id: !input relay_1_mode
+            state: "off"
+          - condition: not
+            conditions:
+              - condition: state
+                entity_id: !input relay_1_switch
+                state: "off"
         sequence:
-          - service: homeassistant.turn_off
+          - service: switch.turn_off
             target:
-              entity_id: "{{ relay_1 }}"
-    default: []
+              entity_id: !input relay_1_switch
 
-  - delay: "00:00:01"
+  # --- Channel 2 (Only if configured) ---
+  - if:
+      - condition: template
+        value_template: "{{ r2_s != none and r2_s != [] }}"
+    then:
+      - choose:
+          - conditions:
+              - condition: state
+                entity_id: !input relay_2_mode
+                state: "on"
+              - condition: not
+                conditions:
+                  - condition: state
+                    entity_id: !input relay_2_switch
+                    state: "on"
+            sequence:
+              - service: switch.turn_on
+                target:
+                  entity_id: !input relay_2_switch
+          - conditions:
+              - condition: state
+                entity_id: !input relay_2_mode
+                state: "off"
+              - condition: not
+                conditions:
+                  - condition: state
+                    entity_id: !input relay_2_switch
+                    state: "off"
+            sequence:
+              - service: switch.turn_off
+                target:
+                  entity_id: !input relay_2_switch
 
-  # ------- Relay 2 -------
-  - choose:
-      - conditions:
-          - condition: template
-            value_template: "{{ gang_count >= 2 and relay_2 != '' and helper_2 != '' and states(helper_2) == 'on' and states(relay_2) != 'on' }}"
-        sequence:
-          - service: homeassistant.turn_on
-            target:
-              entity_id: "{{ relay_2 }}"
-      - conditions:
-          - condition: template
-            value_template: "{{ gang_count >= 2 and relay_2 != '' and helper_2 != '' and states(helper_2) == 'off' and states(relay_2) != 'off' }}"
-        sequence:
-          - service: homeassistant.turn_off
-            target:
-              entity_id: "{{ relay_2 }}"
-    default: []
+  # --- Channel 3 (Only if configured) ---
+  - if:
+      - condition: template
+        value_template: "{{ r3_s != none and r3_s != [] }}"
+    then:
+      - choose:
+          - conditions:
+              - condition: state
+                entity_id: !input relay_3_mode
+                state: "on"
+              - condition: not
+                conditions:
+                  - condition: state
+                    entity_id: !input relay_3_switch
+                    state: "on"
+            sequence:
+              - service: switch.turn_on
+                target:
+                  entity_id: !input relay_3_switch
+          - conditions:
+              - condition: state
+                entity_id: !input relay_3_mode
+                state: "off"
+              - condition: not
+                conditions:
+                  - condition: state
+                    entity_id: !input relay_3_switch
+                    state: "off"
+            sequence:
+              - service: switch.turn_off
+                target:
+                  entity_id: !input relay_3_switch
 
-  - delay: "00:00:01"
+  # --- Channel 4 (Only if configured) ---
+  - if:
+      - condition: template
+        value_template: "{{ r4_s != none and r4_s != [] }}"
+    then:
+      - choose:
+          - conditions:
+              - condition: state
+                entity_id: !input relay_4_mode
+                state: "on"
+              - condition: not
+                conditions:
+                  - condition: state
+                    entity_id: !input relay_4_switch
+                    state: "on"
+            sequence:
+              - service: switch.turn_on
+                target:
+                  entity_id: !input relay_4_switch
+          - conditions:
+              - condition: state
+                entity_id: !input relay_4_mode
+                state: "off"
+              - condition: not
+                conditions:
+                  - condition: state
+                    entity_id: !input relay_4_switch
+                    state: "off"
+            sequence:
+              - service: switch.turn_off
+                target:
+                  entity_id: !input relay_4_switch
 
-  # ------- Relay 3 -------
-  - choose:
-      - conditions:
-          - condition: template
-            value_template: "{{ gang_count >= 3 and relay_3 != '' and helper_3 != '' and states(helper_3) == 'on' and states(relay_3) != 'on' }}"
-        sequence:
-          - service: homeassistant.turn_on
-            target:
-              entity_id: "{{ relay_3 }}"
-      - conditions:
-          - condition: template
-            value_template: "{{ gang_count >= 3 and relay_3 != '' and helper_3 != '' and states(helper_3) == 'off' and states(relay_3) != 'off' }}"
-        sequence:
-          - service: homeassistant.turn_off
-            target:
-              entity_id: "{{ relay_3 }}"
-    default: []
-
-  - delay: "00:00:01"
-
-  # ------- Relay 4 -------
-  - choose:
-      - conditions:
-          - condition: template
-            value_template: "{{ gang_count >= 4 and relay_4 != '' and helper_4 != '' and states(helper_4) == 'on' and states(relay_4) != 'on' }}"
-        sequence:
-          - service: homeassistant.turn_on
-            target:
-              entity_id: "{{ relay_4 }}"
-      - conditions:
-          - condition: template
-            value_template: "{{ gang_count >= 4 and relay_4 != '' and helper_4 != '' and states(helper_4) == 'off' and states(relay_4) != 'off' }}"
-        sequence:
-          - service: homeassistant.turn_off
-            target:
-              entity_id: "{{ relay_4 }}"
-    default: []
+  # --- Final Light Action (Only if configured) ---
+  - if:
+      - condition: template
+        value_template: "{{ s_light != none and s_light != [] }}"
+    then:
+      - delay: "00:00:01"
+      - service: light.turn_off
+        target:
+          entity_id: !input status_light
