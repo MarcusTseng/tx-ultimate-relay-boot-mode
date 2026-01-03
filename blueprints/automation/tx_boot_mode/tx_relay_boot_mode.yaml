@@ -8,7 +8,8 @@ blueprint:
       - "on"
       - "off"
   domain: automation
-  author: you
+  author: MarcusTseng
+  version: "0.0.8"
 
   input:
     device_state_entity:
@@ -112,6 +113,17 @@ trigger:
       - unavailable
     to: null
 
+variables:
+  gang_count: "{{ inputs.gang_count | int(4) }}"
+  relay_1: !input relay_1
+  relay_2: !input relay_2
+  relay_3: !input relay_3
+  relay_4: !input relay_4
+  helper_1: !input helper_1
+  helper_2: !input helper_2
+  helper_3: !input helper_3
+  helper_4: !input helper_4
+
 action:
   # Let the device finish its own restore logic
   - delay: "00:00:03"
@@ -119,31 +131,27 @@ action:
   # ------- Relay 1 (always present) -------
   - choose:
       - conditions:
-          - condition: state
-            entity_id: !input helper_1
-            state: "on"
+          - condition: template
+            value_template: "{{ states(helper_1) == 'on' }}"
         sequence:
           - condition: not
             conditions:
-              - condition: state
-                entity_id: !input relay_1
-                state: "on"
+              - condition: template
+                value_template: "{{ states(relay_1) == 'on' }}"
           - action: homeassistant.turn_on
             target:
-              entity_id: !input relay_1
+              entity_id: "{{ relay_1 }}"
       - conditions:
-          - condition: state
-            entity_id: !input helper_1
-            state: "off"
+          - condition: template
+            value_template: "{{ states(helper_1) == 'off' }}"
         sequence:
           - condition: not
             conditions:
-              - condition: state
-                entity_id: !input relay_1
-                state: "off"
+              - condition: template
+                value_template: "{{ states(relay_1) == 'off' }}"
           - action: homeassistant.turn_off
             target:
-              entity_id: !input relay_1
+              entity_id: "{{ relay_1 }}"
     default: []
 
   - delay: "00:00:01"
@@ -152,34 +160,26 @@ action:
   - choose:
       - conditions:
           - condition: template
-            value_template: "{{ inputs.gang_count | int >= 2 and inputs.relay_2 != '' and inputs.helper_2 != '' }}"
-          - condition: state
-            entity_id: !input helper_2
-            state: "on"
+            value_template: "{{ gang_count >= 2 and relay_2 != '' and helper_2 != '' and states(helper_2) == 'on' }}"
         sequence:
           - condition: not
             conditions:
-              - condition: state
-                entity_id: !input relay_2
-                state: "on"
+              - condition: template
+                value_template: "{{ states(relay_2) == 'on' }}"
           - action: homeassistant.turn_on
             target:
-              entity_id: !input relay_2
+              entity_id: "{{ relay_2 }}"
       - conditions:
           - condition: template
-            value_template: "{{ inputs.gang_count | int >= 2 and inputs.relay_2 != '' and inputs.helper_2 != '' }}"
-          - condition: state
-            entity_id: !input helper_2
-            state: "off"
+            value_template: "{{ gang_count >= 2 and relay_2 != '' and helper_2 != '' and states(helper_2) == 'off' }}"
         sequence:
           - condition: not
             conditions:
-              - condition: state
-                entity_id: !input relay_2
-                state: "off"
+              - condition: template
+                value_template: "{{ states(relay_2) == 'off' }}"
           - action: homeassistant.turn_off
             target:
-              entity_id: !input relay_2
+              entity_id: "{{ relay_2 }}"
     default: []
 
   - delay: "00:00:01"
@@ -188,34 +188,26 @@ action:
   - choose:
       - conditions:
           - condition: template
-            value_template: "{{ inputs.gang_count | int >= 3 and inputs.relay_3 != '' and inputs.helper_3 != '' }}"
-          - condition: state
-            entity_id: !input helper_3
-            state: "on"
+            value_template: "{{ gang_count >= 3 and relay_3 != '' and helper_3 != '' and states(helper_3) == 'on' }}"
         sequence:
           - condition: not
             conditions:
-              - condition: state
-                entity_id: !input relay_3
-                state: "on"
+              - condition: template
+                value_template: "{{ states(relay_3) == 'on' }}"
           - action: homeassistant.turn_on
             target:
-              entity_id: !input relay_3
+              entity_id: "{{ relay_3 }}"
       - conditions:
           - condition: template
-            value_template: "{{ inputs.gang_count | int >= 3 and inputs.relay_3 != '' and inputs.helper_3 != '' }}"
-          - condition: state
-            entity_id: !input helper_3
-            state: "off"
+            value_template: "{{ gang_count >= 3 and relay_3 != '' and helper_3 != '' and states(helper_3) == 'off' }}"
         sequence:
           - condition: not
             conditions:
-              - condition: state
-                entity_id: !input relay_3
-                state: "off"
+              - condition: template
+                value_template: "{{ states(relay_3) == 'off' }}"
           - action: homeassistant.turn_off
             target:
-              entity_id: !input relay_3
+              entity_id: "{{ relay_3 }}"
     default: []
 
   - delay: "00:00:01"
@@ -224,32 +216,24 @@ action:
   - choose:
       - conditions:
           - condition: template
-            value_template: "{{ inputs.gang_count | int >= 4 and inputs.relay_4 != '' and inputs.helper_4 != '' }}"
-          - condition: state
-            entity_id: !input helper_4
-            state: "on"
+            value_template: "{{ gang_count >= 4 and relay_4 != '' and helper_4 != '' and states(helper_4) == 'on' }}"
         sequence:
           - condition: not
             conditions:
-              - condition: state
-                entity_id: !input relay_4
-                state: "on"
+              - condition: template
+                value_template: "{{ states(relay_4) == 'on' }}"
           - action: homeassistant.turn_on
             target:
-              entity_id: !input relay_4
+              entity_id: "{{ relay_4 }}"
       - conditions:
           - condition: template
-            value_template: "{{ inputs.gang_count | int >= 4 and inputs.relay_4 != '' and inputs.helper_4 != '' }}"
-          - condition: state
-            entity_id: !input helper_4
-            state: "off"
+            value_template: "{{ gang_count >= 4 and relay_4 != '' and helper_4 != '' and states(helper_4) == 'off' }}"
         sequence:
           - condition: not
             conditions:
-              - condition: state
-                entity_id: !input relay_4
-                state: "off"
+              - condition: template
+                value_template: "{{ states(relay_4) == 'off' }}"
           - action: homeassistant.turn_off
             target:
-              entity_id: !input relay_4
+              entity_id: "{{ relay_4 }}"
     default: []
