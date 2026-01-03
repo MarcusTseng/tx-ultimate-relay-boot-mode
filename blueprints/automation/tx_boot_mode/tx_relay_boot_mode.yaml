@@ -3,23 +3,24 @@ blueprint:
   description: >
     Set per-relay boot behavior (Default / Force ON / Force OFF) for a
     Sonoff TX Ultimate using helpers. Supports 1/2/3/4‑gang devices.
-    Triggers when T5 state changes from unknown to any state.
+    Triggers when T5 state changes from unavailable to any state.
     For each relay, create an input_select with options:
       - Default
       - Force ON
       - Force OFF
   domain: automation
-  author: you
+  author: MarcusTseng
 
   input:
     device_state_entity:
       name: T5 state entity (binary_sensor or sensor)
       description: >
         Entity that represents T5 state (e.g., sensor.${NAME}_device_name).
-        Automation triggers when this changes from unknown to any state.
+        Automation triggers when this changes from unavailable to any state.
       selector:
         entity:
-          domain: sensor
+          domain:
+            - sensor
 
     gang_count:
       name: Gang count
@@ -105,11 +106,11 @@ blueprint:
 
 mode: single
 
-# Trigger when T5 state entity changes from unknown to any state
+# Trigger when T5 state entity changes from unavailable to any state
 trigger:
   - platform: state
     entity_id: !input device_state_entity
-    from: "unknown"
+    from: "unavailable"
 
 variables:
   gang_count: "{{ (inputs.gang_count | default('4')) | int }}"
