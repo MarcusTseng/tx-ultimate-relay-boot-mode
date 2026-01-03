@@ -31,41 +31,42 @@ blueprint:
           domain: switch
     relay_1_mode:
       name: Relay 1 Boot Mode Helper
+      description: input_select for relay 1 boot mode (values must be "on" or "off")
       selector:
         entity:
           domain: input_select
     relay_2_switch:
-      name: Relay 2 Switch (Optional)
+      name: Relay 2 Switch (Optional, leave empty if 1‑gang)
       default: []
       selector:
         entity:
           domain: switch
     relay_2_mode:
-      name: Relay 2 Boot Mode Helper (Optional)
+      name: Relay 2 Boot Mode Helper (Optional, leave empty if 1‑gang)
       default: []
       selector:
         entity:
           domain: input_select
     relay_3_switch:
-      name: Relay 3 Switch (Optional)
+      name: Relay 3 Switch (Optional, leave empty if 1/2‑gang)
       default: []
       selector:
         entity:
           domain: switch
     relay_3_mode:
-      name: Relay 3 Boot Mode Helper (Optional)
+      name: Relay 3 Boot Mode Helper (Optional, leave empty if 1/2‑gang)
       default: []
       selector:
         entity:
           domain: input_select
     relay_4_switch:
-      name: Relay 4 Switch (Optional)
+      name: Relay 4 Switch (Optional, leave empty if 1/2/3‑gang)
       default: []
       selector:
         entity:
           domain: switch
     relay_4_mode:
-      name: Relay 4 Boot Mode Helper (Optional)
+      name: Relay 4 Boot Mode Helper (Optional, leave empty if 1/2/3‑gang)
       default: []
       selector:
         entity:
