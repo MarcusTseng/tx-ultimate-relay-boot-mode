@@ -3,6 +3,7 @@ blueprint:
   description: >
     Set per-relay boot behavior (Default / Force ON / Force OFF) for a
     Sonoff TX Ultimate using helpers. Supports 1/2/3/4‑gang devices.
+    Triggers when T5 state changes from unknown to any state.
     For each relay, create an input_select with options:
       - Default
       - Force ON
@@ -11,6 +12,17 @@ blueprint:
   author: you
 
   input:
+    device_state_entity:
+      name: T5 state entity (binary_sensor or sensor)
+      description: >
+        Entity that represents T5 state (e.g., binary_sensor.tx_ultimate_status).
+        Automation triggers when this changes from unknown to any state.
+      selector:
+        entity:
+          domain:
+            - binary_sensor
+            - sensor
+
     gang_count:
       name: Gang count
       description: How many relays (gangs) this switch has
@@ -95,10 +107,11 @@ blueprint:
 
 mode: single
 
-# 只用 Relay 1 當觸發，避免空 entity_id
+# Trigger when T5 state entity changes from unknown to any state
 trigger:
   - platform: state
-    entity_id: !input relay_1
+    entity_id: !input device_state_entity
+    from: "unknown"
 
 variables:
   gang_count: "{{ (inputs.gang_count | default('4')) | int }}"
@@ -112,9 +125,10 @@ variables:
   helper_4: "{{ inputs.helper_4 }}"
 
 action:
+  # Let the device finish its own restore logic
   - delay: "00:00:03"
 
-  # Relay 1 (always present)
+  # ------- Relay 1 (always present) -------
   - choose:
       - conditions:
           - condition: template
@@ -136,13 +150,15 @@ action:
               entity_id: "{{ relay_1 }}"
     default: []
 
-  # Relay 2 (only if gang_count >= 2 and helper_2 & relay_2 are set)
+  # ------- Relay 2 (only if gang_count >= 2 and helper_2 & relay_2 are set) -------
   - choose:
       - conditions:
           - condition: template
             value_template: >
               {{ gang_count >= 2
+                 and helper_2 is not none
                  and helper_2 != ''
+                 and relay_2 is not none
                  and relay_2 != ''
                  and states(helper_2) == 'Force ON' }}
         sequence:
@@ -155,7 +171,9 @@ action:
           - condition: template
             value_template: >
               {{ gang_count >= 2
+                 and helper_2 is not none
                  and helper_2 != ''
+                 and relay_2 is not none
                  and relay_2 != ''
                  and states(helper_2) == 'Force OFF' }}
         sequence:
@@ -166,13 +184,15 @@ action:
               entity_id: "{{ relay_2 }}"
     default: []
 
-  # Relay 3
+  # ------- Relay 3 (only if gang_count >= 3 and helper_3 & relay_3 are set) -------
   - choose:
       - conditions:
           - condition: template
             value_template: >
               {{ gang_count >= 3
+                 and helper_3 is not none
                  and helper_3 != ''
+                 and relay_3 is not none
                  and relay_3 != ''
                  and states(helper_3) == 'Force ON' }}
         sequence:
@@ -185,7 +205,9 @@ action:
           - condition: template
             value_template: >
               {{ gang_count >= 3
+                 and helper_3 is not none
                  and helper_3 != ''
+                 and relay_3 is not none
                  and relay_3 != ''
                  and states(helper_3) == 'Force OFF' }}
         sequence:
@@ -196,13 +218,15 @@ action:
               entity_id: "{{ relay_3 }}"
     default: []
 
-  # Relay 4
+  # ------- Relay 4 (only if gang_count >= 4 and helper_4 & relay_4 are set) -------
   - choose:
       - conditions:
           - condition: template
             value_template: >
               {{ gang_count >= 4
+                 and helper_4 is not none
                  and helper_4 != ''
+                 and relay_4 is not none
                  and relay_4 != ''
                  and states(helper_4) == 'Force ON' }}
         sequence:
@@ -215,7 +239,9 @@ action:
           - condition: template
             value_template: >
               {{ gang_count >= 4
+                 and helper_4 is not none
                  and helper_4 != ''
+                 and relay_4 is not none
                  and relay_4 != ''
                  and states(helper_4) == 'Force OFF' }}
         sequence:
