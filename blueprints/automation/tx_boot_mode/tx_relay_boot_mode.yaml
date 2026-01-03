@@ -24,35 +24,43 @@ blueprint:
             - "4"
 
     relay_1:
-      name: Relay 1 switch
-      description: First relay (required)
+      name: Relay 1 entity
+      description: First relay/light (required)
       selector:
         entity:
-          domain: switch
+          domain:
+            - switch
+            - light
 
     relay_2:
-      name: Relay 2 switch
-      description: Second relay (leave empty if 1‑gang)
+      name: Relay 2 entity
+      description: Second relay/light (leave empty if 1‑gang)
       default: ""
       selector:
         entity:
-          domain: switch
+          domain:
+            - switch
+            - light
 
     relay_3:
-      name: Relay 3 switch
-      description: Third relay (leave empty if 1/2‑gang)
+      name: Relay 3 entity
+      description: Third relay/light (leave empty if 1/2‑gang)
       default: ""
       selector:
         entity:
-          domain: switch
+          domain:
+            - switch
+            - light
 
     relay_4:
-      name: Relay 4 switch
-      description: Fourth relay (leave empty if 1/2/3‑gang)
+      name: Relay 4 entity
+      description: Fourth relay/light (leave empty if 1/2/3‑gang)
       default: ""
       selector:
         entity:
-          domain: switch
+          domain:
+            - switch
+            - light
 
     helper_1:
       name: Relay 1 boot-mode helper
@@ -118,7 +126,7 @@ action:
         sequence:
           - condition: template
             value_template: "{{ states(relay_1) != 'on' }}"
-          - service: switch.turn_on
+          - service: homeassistant.turn_on
             target:
               entity_id: "{{ relay_1 }}"
       - conditions:
@@ -127,7 +135,7 @@ action:
         sequence:
           - condition: template
             value_template: "{{ states(relay_1) != 'off' }}"
-          - service: switch.turn_off
+          - service: homeassistant.turn_off
             target:
               entity_id: "{{ relay_1 }}"
     default: []
@@ -141,7 +149,7 @@ action:
         sequence:
           - condition: template
             value_template: "{{ states(relay_2) != 'on' }}"
-          - service: switch.turn_on
+          - service: homeassistant.turn_on
             target:
               entity_id: "{{ relay_2 }}"
       - conditions:
@@ -151,7 +159,7 @@ action:
         sequence:
           - condition: template
             value_template: "{{ states(relay_2) != 'off' }}"
-          - service: switch.turn_off
+          - service: homeassistant.turn_off
             target:
               entity_id: "{{ relay_2 }}"
     default: []
@@ -165,7 +173,7 @@ action:
         sequence:
           - condition: template
             value_template: "{{ states(relay_3) != 'on' }}"
-          - service: switch.turn_on
+          - service: homeassistant.turn_on
             target:
               entity_id: "{{ relay_3 }}"
       - conditions:
@@ -175,7 +183,7 @@ action:
         sequence:
           - condition: template
             value_template: "{{ states(relay_3) != 'off' }}"
-          - service: switch.turn_off
+          - service: homeassistant.turn_off
             target:
               entity_id: "{{ relay_3 }}"
     default: []
@@ -189,7 +197,7 @@ action:
         sequence:
           - condition: template
             value_template: "{{ states(relay_4) != 'on' }}"
-          - service: switch.turn_on
+          - service: homeassistant.turn_on
             target:
               entity_id: "{{ relay_4 }}"
       - conditions:
@@ -199,7 +207,7 @@ action:
         sequence:
           - condition: template
             value_template: "{{ states(relay_4) != 'off' }}"
-          - service: switch.turn_off
+          - service: homeassistant.turn_off
             target:
               entity_id: "{{ relay_4 }}"
     default: []
