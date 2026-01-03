@@ -1,7 +1,7 @@
 blueprint:
   name: "TX-Ultimate-Easy Enhanced Boot Restorer"
   description: |
-    ### (Version: 1.1.5)
+    ### (Version: 1.1.6)
     
     This blueprint acts as a dynamic management layer for the **TX-Ultimate-Easy** (by edwardtfn). While the ESPHome firmware handles local hardware logic, this blueprint provides:
     
@@ -11,6 +11,8 @@ blueprint:
     * **4. Network Optimization**: Only sends commands if the current state differs from the target.
     
     ---
+    **💡 Setup Tip**: You can create the required `input_select` helpers directly within the automation setup screen by clicking the **"+"** button at the bottom of the dropdown menu.
+    
     **Note**: This blueprint's logic and structure were developed and optimized with the assistance of AI (Gemini). 
     Supports 1 to 4 channels. Unused channels can be left blank.
   domain: automation
