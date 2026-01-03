@@ -9,7 +9,6 @@ blueprint:
       - "off"
   domain: automation
   author: MarcusTseng
-  version: "0.0.8"
 
   input:
     device_state_entity:
