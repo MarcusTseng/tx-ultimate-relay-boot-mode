@@ -1,16 +1,17 @@
 blueprint:
   name: "TX-Ultimate-Easy Enhanced Boot Restorer"
-  description: >
-    (Version: 1.1.5)
-    This blueprint acts as a dynamic management layer for the **TX-Ultimate-Easy** (by edwardtfn). 
-    While the ESPHome firmware handles local hardware logic, this blueprint provides:
+  description: |
+    ### (Version: 1.1.5)
     
-    1. **Dynamic Boot Logic**: Change relay boot states (on/off) via HA UI without re-flashing.
-    2. **Reconnection Sync**: Specifically handles state restoration when the device recovers from 'unavailable'.
-    3. **Status Cleanup**: Automatically turns off the LED indicator/ring after the sequence completes.
-    4. **Network Optimization**: Only sends commands if the current state differs from the target.
-
-    **Note**: This blueprint's logic and structure were developed and optimized with the assistance of AI (Gemini).
+    This blueprint acts as a dynamic management layer for the **TX-Ultimate-Easy** (by edwardtfn). While the ESPHome firmware handles local hardware logic, this blueprint provides:
+    
+    * **1. Dynamic Boot Logic**: Change relay boot states (on/off) via HA UI without re-flashing.
+    * **2. Reconnection Sync**: Specifically handles state restoration when the device recovers from 'unavailable'.
+    * **3. Status Cleanup**: Automatically turns off the LED indicator/ring after the sequence completes.
+    * **4. Network Optimization**: Only sends commands if the current state differs from the target.
+    
+    ---
+    **Note**: This blueprint's logic and structure were developed and optimized with the assistance of AI (Gemini). 
     Supports 1 to 4 channels. Unused channels can be left blank.
   domain: automation
   source_url: https://github.com/MarcusTseng/tx-ultimate-relay-boot-mode/blob/main/blueprints/automation/tx_boot_mode/tx_relay_boot_mode.yaml
