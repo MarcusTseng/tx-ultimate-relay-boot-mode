@@ -15,17 +15,15 @@ blueprint:
     device_state_entity:
       name: T5 state entity (binary_sensor or sensor)
       description: >
-        Entity that represents T5 state (e.g., binary_sensor.tx_ultimate_status).
+        Entity that represents T5 state (e.g., sensor.${NAME}_device_name).
         Automation triggers when this changes from unknown to any state.
       selector:
         entity:
-          domain:
-            - binary_sensor
-            - sensor
+          domain: sensor
 
     gang_count:
       name: Gang count
-      description: How many relays (gangs) this switch has
+      description: How many relays (gangs) does this switch have
       default: "4"
       selector:
         select:
