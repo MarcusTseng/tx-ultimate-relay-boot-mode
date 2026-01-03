@@ -20,7 +20,7 @@ For each relay channel, you must create an **Input Select (Dropdown)** helper:
 - **Recommended naming**: `Living Room T5 Relay 1 Mode`
 
 ### 2. Import Blueprint
-[![Import Blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https://github.com/MarcusTseng/tx-ultimate-relay-boot-mode/blob/main/tx_relay_boot_mode.yaml)
+[![Import Blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https://raw.githubusercontent.com/MarcusTseng/tx-ultimate-relay-boot-mode/main/tx_relay_boot_mode.yaml)
 
 ### 3. Configure
 In the Blueprint configuration UI:

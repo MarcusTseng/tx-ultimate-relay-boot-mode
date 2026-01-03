@@ -1,6 +1,7 @@
 blueprint:
   name: "TX-Ultimate-Easy Enhanced Boot Restorer"
   description: >
+    (Version: 1.1.5)
     This blueprint acts as a dynamic management layer for the **TX-Ultimate-Easy** (by edwardtfn). 
     While the ESPHome firmware handles local hardware logic, this blueprint provides:
     
@@ -11,7 +12,6 @@ blueprint:
 
     **Note**: This blueprint's logic and structure were developed and optimized with the assistance of AI (Gemini).
     Supports 1 to 4 channels. Unused channels can be left blank.
-  version: 1.1.2
   domain: automation
   source_url: https://github.com/MarcusTseng/tx-ultimate-relay-boot-mode/blob/main/tx_relay_boot_mode.yaml
   author: Marcus Tseng
@@ -24,8 +24,6 @@ blueprint:
       selector:
         entity:
           domain: sensor
-    
-    # Relay 1 (Required)
     relay_1_switch:
       name: Relay 1 Switch
       selector:
@@ -33,12 +31,9 @@ blueprint:
           domain: switch
     relay_1_mode:
       name: Relay 1 Boot Mode Helper
-      description: input_select helper with options 'on' and 'off'.
       selector:
         entity:
           domain: input_select
-
-    # Relay 2 (Optional)
     relay_2_switch:
       name: Relay 2 Switch (Optional)
       default: []
@@ -51,8 +46,6 @@ blueprint:
       selector:
         entity:
           domain: input_select
-
-    # Relay 3 (Optional)
     relay_3_switch:
       name: Relay 3 Switch (Optional)
       default: []
@@ -65,8 +58,6 @@ blueprint:
       selector:
         entity:
           domain: input_select
-
-    # Relay 4 (Optional)
     relay_4_switch:
       name: Relay 4 Switch (Optional)
       default: []
@@ -79,11 +70,8 @@ blueprint:
       selector:
         entity:
           domain: input_select
-
-    # Status Light (Optional)
     status_light:
       name: T5 Status Indicator Light
-      description: The light entity for the TX Ultimate ring/indicator.
       default: []
       selector:
         entity:
