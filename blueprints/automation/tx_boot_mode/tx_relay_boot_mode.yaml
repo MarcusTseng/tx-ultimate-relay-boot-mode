@@ -1,25 +1,16 @@
 blueprint:
-  name: TX Ultimate relay boot mode (1–4 gang, fixed naming)
+  name: TX Ultimate relay boot mode (1–4 gang)
   description: >
     Set per-relay boot behavior (Default / Force ON / Force OFF) for a
-    Sonoff TX Ultimate using fixed naming:
-      - Relays: switch.xxx_relay_1..4
-      - Helpers: input_select.xxx_relay_1_boot_mode..4_boot_mode
-    Supports 1/2/3/4‑gang devices.
+    Sonoff TX Ultimate using helpers. Supports 1/2/3/4‑gang devices.
+    For each relay, create an input_select with options:
+      - Default
+      - Force ON
+      - Force OFF
   domain: automation
   author: you
 
   input:
-    name_prefix:
-      name: Name prefix (xxx)
-      description: >
-        Common name used for this switch. Relays must be:
-          switch.xxx_relay_1..4
-        and helpers must be:
-          input_select.xxx_relay_1_boot_mode..4_boot_mode
-      selector:
-        text:
-
     gang_count:
       name: Gang count
       description: How many relays (gangs) this switch has
@@ -32,34 +23,94 @@ blueprint:
             - "3"
             - "4"
 
+    relay_1:
+      name: Relay 1 switch
+      description: First relay (required)
+      selector:
+        entity:
+          domain: switch
+
+    relay_2:
+      name: Relay 2 switch
+      description: Second relay (leave empty if 1‑gang)
+      default: ""
+      selector:
+        entity:
+          domain: switch
+
+    relay_3:
+      name: Relay 3 switch
+      description: Third relay (leave empty if 1/2‑gang)
+      default: ""
+      selector:
+        entity:
+          domain: switch
+
+    relay_4:
+      name: Relay 4 switch
+      description: Fourth relay (leave empty if 1/2/3‑gang)
+      default: ""
+      selector:
+        entity:
+          domain: switch
+
+    helper_1:
+      name: Relay 1 boot-mode helper
+      description: input_select for relay 1 boot mode
+      selector:
+        entity:
+          domain: input_select
+
+    helper_2:
+      name: Relay 2 boot-mode helper
+      description: input_select for relay 2 boot mode (optional)
+      default: ""
+      selector:
+        entity:
+          domain: input_select
+
+    helper_3:
+      name: Relay 3 boot-mode helper
+      description: input_select for relay 3 boot mode (optional)
+      default: ""
+      selector:
+        entity:
+          domain: input_select
+
+    helper_4:
+      name: Relay 4 boot-mode helper
+      description: input_select for relay 4 boot mode (optional)
+      default: ""
+      selector:
+        entity:
+          domain: input_select
+
 mode: single
 
 trigger:
   - platform: state
     entity_id:
-      - "{{ 'switch.' ~ (name_prefix | string) ~ '_relay_1' }}"
-      - "{{ 'switch.' ~ (name_prefix | string) ~ '_relay_2' }}"
-      - "{{ 'switch.' ~ (name_prefix | string) ~ '_relay_3' }}"
-      - "{{ 'switch.' ~ (name_prefix | string) ~ '_relay_4' }}"
+      - !input relay_1
+      - !input relay_2
+      - !input relay_3
+      - !input relay_4
 
 variables:
-  name_prefix: !input name_prefix
-  gang_count: !input gang_count
-
-  relay_1: "{{ 'switch.' ~ name_prefix ~ '_relay_1' }}"
-  relay_2: "{{ 'switch.' ~ name_prefix ~ '_relay_2' }}"
-  relay_3: "{{ 'switch.' ~ name_prefix ~ '_relay_3' }}"
-  relay_4: "{{ 'switch.' ~ name_prefix ~ '_relay_4' }}"
-
-  helper_1: "{{ 'input_select.' ~ name_prefix ~ '_relay_1_boot_mode' }}"
-  helper_2: "{{ 'input_select.' ~ name_prefix ~ '_relay_2_boot_mode' }}"
-  helper_3: "{{ 'input_select.' ~ name_prefix ~ '_relay_3_boot_mode' }}"
-  helper_4: "{{ 'input_select.' ~ name_prefix ~ '_relay_4_boot_mode' }}"
+  gang_count: "{{ ( !input gang_count ) | int }}"
+  relay_1: !input relay_1
+  relay_2: !input relay_2
+  relay_3: !input relay_3
+  relay_4: !input relay_4
+  helper_1: !input helper_1
+  helper_2: !input helper_2
+  helper_3: !input helper_3
+  helper_4: !input helper_4
 
 action:
+  # Let the device finish its own restore logic
   - delay: "00:00:03"
 
-  # Relay 1
+  # Relay 1 (always present)
   - choose:
       - conditions:
           - condition: template
@@ -81,11 +132,12 @@ action:
               entity_id: "{{ relay_1 }}"
     default: []
 
-  # Relay 2
+  # Relay 2 (only if gang_count >= 2 and helper_2 is set)
   - choose:
       - conditions:
           - condition: template
-            value_template: "{{ gang_count|int >= 2 and states(helper_2) == 'Force ON' }}"
+            value_template: >
+              {{ gang_count >= 2 and helper_2 != '' and states(helper_2) == 'Force ON' }}
         sequence:
           - condition: template
             value_template: "{{ states(relay_2) != 'on' }}"
@@ -94,7 +146,8 @@ action:
               entity_id: "{{ relay_2 }}"
       - conditions:
           - condition: template
-            value_template: "{{ gang_count|int >= 2 and states(helper_2) == 'Force OFF' }}"
+            value_template: >
+              {{ gang_count >= 2 and helper_2 != '' and states(helper_2) == 'Force OFF' }}
         sequence:
           - condition: template
             value_template: "{{ states(relay_2) != 'off' }}"
@@ -103,11 +156,12 @@ action:
               entity_id: "{{ relay_2 }}"
     default: []
 
-  # Relay 3
+  # Relay 3 (only if gang_count >= 3 and helper_3 is set)
   - choose:
       - conditions:
           - condition: template
-            value_template: "{{ gang_count|int >= 3 and states(helper_3) == 'Force ON' }}"
+            value_template: >
+              {{ gang_count >= 3 and helper_3 != '' and states(helper_3) == 'Force ON' }}
         sequence:
           - condition: template
             value_template: "{{ states(relay_3) != 'on' }}"
@@ -116,7 +170,8 @@ action:
               entity_id: "{{ relay_3 }}"
       - conditions:
           - condition: template
-            value_template: "{{ gang_count|int >= 3 and states(helper_3) == 'Force OFF' }}"
+            value_template: >
+              {{ gang_count >= 3 and helper_3 != '' and states(helper_3) == 'Force OFF' }}
         sequence:
           - condition: template
             value_template: "{{ states(relay_3) != 'off' }}"
@@ -125,11 +180,12 @@ action:
               entity_id: "{{ relay_3 }}"
     default: []
 
-  # Relay 4
+  # Relay 4 (only if gang_count >= 4 and helper_4 is set)
   - choose:
       - conditions:
           - condition: template
-            value_template: "{{ gang_count|int >= 4 and states(helper_4) == 'Force ON' }}"
+            value_template: >
+              {{ gang_count >= 4 and helper_4 != '' and states(helper_4) == 'Force ON' }}
         sequence:
           - condition: template
             value_template: "{{ states(relay_4) != 'on' }}"
@@ -138,7 +194,8 @@ action:
               entity_id: "{{ relay_4 }}"
       - conditions:
           - condition: template
-            value_template: "{{ gang_count|int >= 4 and states(helper_4) == 'Force OFF' }}"
+            value_template: >
+              {{ gang_count >= 4 and helper_4 != '' and states(helper_4) == 'Force OFF' }}
         sequence:
           - condition: template
             value_template: "{{ states(relay_4) != 'off' }}"
