@@ -1,6 +1,6 @@
 # Enhanced Boot Restorer for TX-Ultimate-Easy
 
-(Version: 1.1.6)
+(Version: 1.1.7)
 
 This Home Assistant Blueprint is a specialized management layer designed to enhance the [TX-Ultimate-Easy](https://github.com/edwardtfn/TX-Ultimate-Easy) project for Sonoff TX Ultimate (T5) switches.
 
@@ -24,7 +24,7 @@ For each relay channel, you need an **Input Select (Dropdown)** helper with opti
 
 ## ⚙️ Configuration Guide
 1. **Connectivity Sensor**: Select the 'Device Name' sensor from your T5.
-2. **Relays & Helpers**: Map Switch entities to their Boot Mode Helpers. Leave unused channels empty.
+2. **Relays & Helpers**: Map Switch/Light entities to their Boot Mode Helpers. Leave unused channels empty.
 3. **Status Light**: Map the T5 Light entity to automate the LED ring shutdown.
 
 ## 🤝 Transparency & Credits

@@ -1,7 +1,7 @@
 blueprint:
   name: "TX-Ultimate-Easy Enhanced Boot Restorer"
   description: |
-    ### (Version: 1.1.6)
+    ### (Version: 1.1.7)
     
     This blueprint acts as a dynamic management layer for the **TX-Ultimate-Easy** (by edwardtfn). While the ESPHome firmware handles local hardware logic, this blueprint provides:
     
@@ -29,12 +29,17 @@ blueprint:
           domain: sensor
     relay_1_switch:
       name: Relay 1 Switch
+      description: 
+        switch or light entity for relay 1 based on your configuration
       selector:
         entity:
-          domain: switch
+          domain: 
+            - switch
+            - light
     relay_1_mode:
       name: Relay 1 Boot Mode Helper
-      description: input_select for relay 1 boot mode (values must be "on" or "off")
+      description: 
+        input_select for relay 1 boot mode (values must be "on" or "off")
       selector:
         entity:
           domain: input_select
@@ -43,7 +48,9 @@ blueprint:
       default: []
       selector:
         entity:
-          domain: switch
+          domain: 
+            - switch
+            - light
     relay_2_mode:
       name: Relay 2 Boot Mode Helper (Optional, leave empty if 1‑gang)
       default: []
@@ -55,7 +62,9 @@ blueprint:
       default: []
       selector:
         entity:
-          domain: switch
+          domain: 
+            - switch
+            - light
     relay_3_mode:
       name: Relay 3 Boot Mode Helper (Optional, leave empty if 1/2‑gang)
       default: []
@@ -67,7 +76,9 @@ blueprint:
       default: []
       selector:
         entity:
-          domain: switch
+          domain: 
+            - switch
+            - light
     relay_4_mode:
       name: Relay 4 Boot Mode Helper (Optional, leave empty if 1/2/3‑gang)
       default: []
