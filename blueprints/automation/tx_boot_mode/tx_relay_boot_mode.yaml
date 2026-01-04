@@ -1,19 +1,22 @@
 blueprint:
   name: "TX-Ultimate-Easy Enhanced Boot Restorer"
   description: |
-    ### (Version: 1.1.7)
+    ### (Version: 1.2.2)
     
-    This blueprint acts as a dynamic management layer for the **TX-Ultimate-Easy** (by edwardtfn). While the ESPHome firmware handles local hardware logic, this blueprint provides:
+    This blueprint acts as a comprehensive dynamic management layer for the **TX-Ultimate-Easy** (by edwardtfn). While the ESPHome firmware handles local hardware logic, this blueprint provides:
     
-    * **1. Dynamic Boot Logic**: Change relay boot states (on/off) via HA UI without re-flashing.
-    * **2. Reconnection Sync**: Specifically handles state restoration when the device recovers from 'unavailable'.
-    * **3. Status Cleanup**: Automatically turns off the LED indicator/ring after the sequence completes.
-    * **4. Network Optimization**: Only sends commands if the current state differs from the target.
+    * **1. Dynamic Boot Logic**: Change relay boot states (on/off) via Home Assistant UI without the need for re-flashing.
+    * **2. Reconnection Sync**: Specifically designed to handle state restoration automatically when the device recovers from an 'unavailable' state.
+    * **3. Linked Device Synchronization**: Optimized for "Detached Mode." If your T5 button controls a separate smart device (e.g., Matter/Zigbee bulb), this ensures that device stays in sync with your settings upon reconnection.
+    * **4. Customizable Timing Controls**: 
+        * **Initial Delay**: Stability wait after the T5 boots.
+        * **Sync Delay**: Crucial for Matter/Zigbee devices to allow time for network re-entry before receiving commands.
+    * **5. Stealth Mode (Status Cleanup)**: Automatically turns off the LED ring indicator after the boot sequence completes.
+    * **6. Network Optimization**: Only sends commands if the current state differs from the target to reduce network traffic.
     
     ---
     **💡 Setup Tip**: You can create the required `input_select` helpers directly within the automation setup screen by clicking the **"+"** button at the bottom of the dropdown menu.
     
-    **Note**: This blueprint's logic and structure were developed and optimized with the assistance of AI (Gemini). 
     Supports 1 to 4 channels. Unused channels can be left blank.
   domain: automation
   source_url: https://github.com/MarcusTseng/tx-ultimate-relay-boot-mode/blob/main/blueprints/automation/tx_boot_mode/tx_relay_boot_mode.yaml
@@ -27,70 +30,125 @@ blueprint:
       selector:
         entity:
           domain: sensor
+
+    # --- Section: Timing Settings ---
+    initial_delay:
+      name: Initial Delay
+      description: Wait time after T5 comes online before triggering relays (ensures Wi-Fi stability).
+      default: 5
+      selector:
+        number:
+          min: 0
+          max: 30
+          unit_of_measurement: seconds
+          mode: slider
+    sync_delay:
+      name: Linked Device Sync Delay
+      description: Wait time between turning on the relay and syncing the external device (recommended 5-15s for Matter).
+      default: 5
+      selector:
+        number:
+          min: 0
+          max: 30
+          unit_of_measurement: seconds
+          mode: slider
+
+    # --- Section: Gang 1 ---
     relay_1_switch:
       name: Relay 1 Switch
-      description: 
-        switch or light entity for relay 1 based on your configuration
       selector:
         entity:
-          domain: 
-            - switch
-            - light
+          domain: [switch, light]
     relay_1_mode:
       name: Relay 1 Boot Mode Helper
-      description: 
-        input_select for relay 1 boot mode (values must be "on" or "off")
       selector:
         entity:
           domain: input_select
+    linked_device_1:
+      name: Relay 1 Linked External Device
+      description: (Optional) The external smart device controlled by this button.
+      default: []
+      selector:
+        entity: {}
+    keep_linked_1_on:
+      name: Keep Linked Device 1 ON?
+      description: If "off", the linked device will reset (ON then OFF) upon T5 reconnection.
+      default: true
+      selector:
+        boolean: {}
+
+    # --- Section: Gang 2 ---
     relay_2_switch:
       name: Relay 2 Switch
-      description: Optional, leave empty if 1‑gang
       default: []
       selector:
         entity:
-          domain: 
-            - switch
-            - light
+          domain: [switch, light]
     relay_2_mode:
       name: Relay 2 Boot Mode Helper
-      description: Optional, leave empty if 1‑gang
       default: []
       selector:
         entity:
           domain: input_select
+    linked_device_2:
+      name: Relay 2 Linked External Device
+      default: []
+      selector:
+        entity: {}
+    keep_linked_2_on:
+      name: Keep Linked Device 2 ON?
+      default: true
+      selector:
+        boolean: {}
+
+    # --- Section: Gang 3 ---
     relay_3_switch:
       name: Relay 3 Switch 
-      description: Optional, leave empty if 1/2‑gang
       default: []
       selector:
         entity:
-          domain: 
-            - switch
-            - light
+          domain: [switch, light]
     relay_3_mode:
       name: Relay 3 Boot Mode Helper 
-      description: Optional, leave empty if 1/2‑gang
       default: []
       selector:
         entity:
           domain: input_select
+    linked_device_3:
+      name: Relay 3 Linked External Device
+      default: []
+      selector:
+        entity: {}
+    keep_linked_3_on:
+      name: Keep Linked Device 3 ON?
+      default: true
+      selector:
+        boolean: {}
+
+    # --- Section: Gang 4 ---
     relay_4_switch:
       name: Relay 4 Switch
-      description: Optional, leave empty if 1/2/3‑gang
       default: []
       selector:
         entity:
-          domain: 
-            - switch
-            - light
+          domain: [switch, light]
     relay_4_mode:
       name: Relay 4 Boot Mode Helper
-      description: Optional, leave empty if 1/2/3‑gang
       default: []
       selector:
         entity:
           domain: input_select
+    linked_device_4:
+      name: Relay 4 Linked External Device
+      default: []
+      selector:
+        entity: {}
+    keep_linked_4_on:
+      name: Keep Linked Device 4 ON?
+      default: true
+      selector:
+        boolean: {}
+
     status_light:
       name: T5 Status Indicator Light
       default: []
@@ -104,7 +162,17 @@ variables:
   r2_s: !input relay_2_switch
   r3_s: !input relay_3_switch
   r4_s: !input relay_4_switch
+  l_d1: !input linked_device_1
+  k_l1: !input keep_linked_1_on
+  l_d2: !input linked_device_2
+  k_l2: !input keep_linked_2_on
+  l_d3: !input linked_device_3
+  k_l3: !input keep_linked_3_on
+  l_d4: !input linked_device_4
+  k_l4: !input keep_linked_4_on
   s_light: !input status_light
+  i_delay: !input initial_delay
+  s_delay: !input sync_delay
 
 trigger:
   - platform: state
@@ -112,7 +180,7 @@ trigger:
     from: "unavailable"
 
 action:
-  - delay: "00:00:05"
+  - delay: "{{ i_delay }}"
   
   # --- Channel 1 ---
   - choose:
@@ -120,26 +188,32 @@ action:
           - condition: state
             entity_id: !input relay_1_mode
             state: "on"
-          - condition: not
-            conditions:
-              - condition: state
-                entity_id: !input relay_1_switch
-                state: "on"
         sequence:
-          - service: switch.turn_on
+          - service: homeassistant.turn_on
             target:
               entity_id: !input relay_1_switch
+          - if:
+              - condition: template
+                value_template: "{{ l_d1 != none and l_d1 != [] }}"
+            then:
+              - delay: "{{ s_delay }}"
+              - service: homeassistant.turn_on
+                target:
+                  entity_id: !input linked_device_1
+              - if:
+                  - condition: template
+                    value_template: "{{ not k_l1 }}"
+                then:
+                  - delay: "00:00:01"
+                  - service: homeassistant.turn_off
+                    target:
+                      entity_id: !input linked_device_1
       - conditions:
           - condition: state
             entity_id: !input relay_1_mode
             state: "off"
-          - condition: not
-            conditions:
-              - condition: state
-                entity_id: !input relay_1_switch
-                state: "off"
         sequence:
-          - service: switch.turn_off
+          - service: homeassistant.turn_off
             target:
               entity_id: !input relay_1_switch
 
@@ -153,26 +227,32 @@ action:
               - condition: state
                 entity_id: !input relay_2_mode
                 state: "on"
-              - condition: not
-                conditions:
-                  - condition: state
-                    entity_id: !input relay_2_switch
-                    state: "on"
             sequence:
-              - service: switch.turn_on
+              - service: homeassistant.turn_on
                 target:
                   entity_id: !input relay_2_switch
+              - if:
+                  - condition: template
+                    value_template: "{{ l_d2 != none and l_d2 != [] }}"
+                then:
+                  - delay: "{{ s_delay }}"
+                  - service: homeassistant.turn_on
+                    target:
+                      entity_id: !input linked_device_2
+                  - if:
+                      - condition: template
+                        value_template: "{{ not k_l2 }}"
+                    then:
+                      - delay: "00:00:01"
+                      - service: homeassistant.turn_off
+                        target:
+                          entity_id: !input linked_device_2
           - conditions:
               - condition: state
                 entity_id: !input relay_2_mode
                 state: "off"
-              - condition: not
-                conditions:
-                  - condition: state
-                    entity_id: !input relay_2_switch
-                    state: "off"
             sequence:
-              - service: switch.turn_off
+              - service: homeassistant.turn_off
                 target:
                   entity_id: !input relay_2_switch
 
@@ -186,26 +266,32 @@ action:
               - condition: state
                 entity_id: !input relay_3_mode
                 state: "on"
-              - condition: not
-                conditions:
-                  - condition: state
-                    entity_id: !input relay_3_switch
-                    state: "on"
             sequence:
-              - service: switch.turn_on
+              - service: homeassistant.turn_on
                 target:
                   entity_id: !input relay_3_switch
+              - if:
+                  - condition: template
+                    value_template: "{{ l_d3 != none and l_d3 != [] }}"
+                then:
+                  - delay: "{{ s_delay }}"
+                  - service: homeassistant.turn_on
+                    target:
+                      entity_id: !input linked_device_3
+                  - if:
+                      - condition: template
+                        value_template: "{{ not k_l3 }}"
+                    then:
+                      - delay: "00:00:01"
+                      - service: homeassistant.turn_off
+                        target:
+                          entity_id: !input linked_device_3
           - conditions:
               - condition: state
                 entity_id: !input relay_3_mode
                 state: "off"
-              - condition: not
-                conditions:
-                  - condition: state
-                    entity_id: !input relay_3_switch
-                    state: "off"
             sequence:
-              - service: switch.turn_off
+              - service: homeassistant.turn_off
                 target:
                   entity_id: !input relay_3_switch
 
@@ -219,26 +305,32 @@ action:
               - condition: state
                 entity_id: !input relay_4_mode
                 state: "on"
-              - condition: not
-                conditions:
-                  - condition: state
-                    entity_id: !input relay_4_switch
-                    state: "on"
             sequence:
-              - service: switch.turn_on
+              - service: homeassistant.turn_on
                 target:
                   entity_id: !input relay_4_switch
+              - if:
+                  - condition: template
+                    value_template: "{{ l_d4 != none and l_d4 != [] }}"
+                then:
+                  - delay: "{{ s_delay }}"
+                  - service: homeassistant.turn_on
+                    target:
+                      entity_id: !input linked_device_4
+                  - if:
+                      - condition: template
+                        value_template: "{{ not k_l4 }}"
+                    then:
+                      - delay: "00:00:01"
+                      - service: homeassistant.turn_off
+                        target:
+                          entity_id: !input linked_device_4
           - conditions:
               - condition: state
                 entity_id: !input relay_4_mode
                 state: "off"
-              - condition: not
-                conditions:
-                  - condition: state
-                    entity_id: !input relay_4_switch
-                    state: "off"
             sequence:
-              - service: switch.turn_off
+              - service: homeassistant.turn_off
                 target:
                   entity_id: !input relay_4_switch
 
