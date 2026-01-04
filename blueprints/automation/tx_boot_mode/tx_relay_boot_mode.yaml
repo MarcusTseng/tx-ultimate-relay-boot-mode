@@ -1,28 +1,26 @@
 blueprint:
   name: "TX-Ultimate-Easy Enhanced Boot Restorer"
   description: |
-    ### (Version: 1.2.2)
+    ### (Version: 1.3.6)
     
     This blueprint acts as a comprehensive dynamic management layer for the **TX-Ultimate-Easy** (by edwardtfn). While the ESPHome firmware handles local hardware logic, this blueprint provides:
     
-    * **1. Dynamic Boot Logic**: Change relay boot states (on/off) via Home Assistant UI without the need for re-flashing.
-    * **2. Reconnection Sync**: Specifically designed to handle state restoration automatically when the device recovers from an 'unavailable' state.
-    * **3. Linked Device Synchronization**: Optimized for "Detached Mode." If your T5 button controls a separate smart device (e.g., Matter/Zigbee bulb), this ensures that device stays in sync with your settings upon reconnection.
-    * **4. Customizable Timing Controls**: 
+    * **1. Dynamic Boot Logic (Internal)**: Set relay boot states (On/Off) directly within this configuration. No external helpers required.
+    * **2. Reconnection Sync**: Automatically restores states when the device recovers from an 'unavailable' state.
+    * **3. Parallel Processing**: All 4 channels operate independently. A delay on one channel will not block the others.
+    * **4. Intelligent Timing & Availability**: 
         * **Initial Delay**: Stability wait after the T5 boots.
-        * **Sync Delay**: Crucial for Matter/Zigbee devices to allow time for network re-entry before receiving commands.
-    * **5. Stealth Mode (Status Cleanup)**: Automatically turns off the LED ring indicator after the boot sequence completes.
-    * **6. Network Optimization**: Only sends commands if the current state differs from the target to reduce network traffic.
+        * **Smart Wait**: Waits for the linked device to become "available" before syncing to prevent timeouts.
+    * **5. Fault-Tolerant Sync (New in v1.3.6)**: Linked device actions are now non-blocking. If a command fails (e.g., Matter timeout), the automation continues without erroring out.
+    * **6. Stealth Mode (Status Cleanup)**: Automatically turns off the LED ring indicator after all sequences complete.
     
     ---
-    **💡 Setup Tip**: You can create the required `input_select` helpers directly within the automation setup screen by clicking the **"+"** button at the bottom of the dropdown menu.
-    
-    Supports 1 to 4 channels. Unused channels can be left blank.
+    **Note**: Supports 1 to 4 channels. Unused channels can be left blank.
   domain: automation
   source_url: https://github.com/MarcusTseng/tx-ultimate-relay-boot-mode/blob/main/blueprints/automation/tx_boot_mode/tx_relay_boot_mode.yaml
   author: Marcus Tseng
   homeassistant:
-    min_version: 2023.8.0
+    min_version: 2025.12.0
   input:
     trigger_sensor:
       name: Device Connectivity Sensor
@@ -34,7 +32,7 @@ blueprint:
     # --- Section: Timing Settings ---
     initial_delay:
       name: Initial Delay
-      description: Wait time after T5 comes online before triggering relays (ensures Wi-Fi stability).
+      description: Wait time after T5 comes online before triggering relays.
       default: 5
       selector:
         number:
@@ -43,13 +41,13 @@ blueprint:
           unit_of_measurement: seconds
           mode: slider
     sync_delay:
-      name: Linked Device Sync Delay
-      description: Wait time between turning on the relay and syncing the external device (recommended 5-15s for Matter).
-      default: 5
+      name: Linked Device Wait Timeout
+      description: Maximum time to wait for each linked device to become "available".
+      default: 15
       selector:
         number:
-          min: 0
-          max: 30
+          min: 1
+          max: 60
           unit_of_measurement: seconds
           mode: slider
 
@@ -60,10 +58,16 @@ blueprint:
         entity:
           domain: [switch, light]
     relay_1_mode:
-      name: Relay 1 Boot Mode Helper
+      name: Relay 1 Boot Mode
+      description: Set the desired boot state for this relay.
+      default: "off"
       selector:
-        entity:
-          domain: input_select
+        select:
+          options:
+            - label: "On"
+              value: "on"
+            - label: "Off"
+              value: "off"
     linked_device_1:
       name: Relay 1 Linked External Device
       description: (Optional) The external smart device controlled by this button.
@@ -72,7 +76,7 @@ blueprint:
         entity: {}
     keep_linked_1_on:
       name: Keep Linked Device 1 ON?
-      description: If "off", the linked device will reset (ON then OFF) upon T5 reconnection.
+      description: If "off", the linked device will turn ON then OFF immediately upon sync.
       default: true
       selector:
         boolean: {}
@@ -85,11 +89,15 @@ blueprint:
         entity:
           domain: [switch, light]
     relay_2_mode:
-      name: Relay 2 Boot Mode Helper
-      default: []
+      name: Relay 2 Boot Mode
+      default: "off"
       selector:
-        entity:
-          domain: input_select
+        select:
+          options:
+            - label: "On"
+              value: "on"
+            - label: "Off"
+              value: "off"
     linked_device_2:
       name: Relay 2 Linked External Device
       default: []
@@ -109,11 +117,15 @@ blueprint:
         entity:
           domain: [switch, light]
     relay_3_mode:
-      name: Relay 3 Boot Mode Helper 
-      default: []
+      name: Relay 3 Boot Mode
+      default: "off"
       selector:
-        entity:
-          domain: input_select
+        select:
+          options:
+            - label: "On"
+              value: "on"
+            - label: "Off"
+              value: "off"
     linked_device_3:
       name: Relay 3 Linked External Device
       default: []
@@ -133,11 +145,15 @@ blueprint:
         entity:
           domain: [switch, light]
     relay_4_mode:
-      name: Relay 4 Boot Mode Helper
-      default: []
+      name: Relay 4 Boot Mode
+      default: "off"
       selector:
-        entity:
-          domain: input_select
+        select:
+          options:
+            - label: "On"
+              value: "on"
+            - label: "Off"
+              value: "off"
     linked_device_4:
       name: Relay 4 Linked External Device
       default: []
@@ -159,9 +175,13 @@ blueprint:
 mode: restart
 
 variables:
+  r1_m: !input relay_1_mode
   r2_s: !input relay_2_switch
+  r2_m: !input relay_2_mode
   r3_s: !input relay_3_switch
+  r3_m: !input relay_3_mode
   r4_s: !input relay_4_switch
+  r4_m: !input relay_4_mode
   l_d1: !input linked_device_1
   k_l1: !input keep_linked_1_on
   l_d2: !input linked_device_2
@@ -174,21 +194,20 @@ variables:
   i_delay: !input initial_delay
   s_delay: !input sync_delay
 
-trigger:
+triggers:
   - platform: state
     entity_id: !input trigger_sensor
     from: "unavailable"
 
-action:
+actions:
   - delay: "{{ i_delay }}"
   
-  # --- Channel 1 ---
-  - choose:
-      - conditions:
-          - condition: state
-            entity_id: !input relay_1_mode
-            state: "on"
-        sequence:
+  - parallel:
+      # --- Channel 1 ---
+      - if:
+          - condition: template
+            value_template: "{{ r1_m == 'on' }}"
+        then:
           - service: homeassistant.turn_on
             target:
               entity_id: !input relay_1_switch
@@ -196,10 +215,16 @@ action:
               - condition: template
                 value_template: "{{ l_d1 != none and l_d1 != [] }}"
             then:
-              - delay: "{{ s_delay }}"
+              - wait_for_trigger:
+                  - platform: state
+                    entity_id: !input linked_device_1
+                    not_from: [unavailable, unknown]
+                timeout: "{{ s_delay }}"
+                continue_on_timeout: true
               - service: homeassistant.turn_on
                 target:
                   entity_id: !input linked_device_1
+                continue_on_error: true # Prevents termination if Matter times out
               - if:
                   - condition: template
                     value_template: "{{ not k_l1 }}"
@@ -208,26 +233,21 @@ action:
                   - service: homeassistant.turn_off
                     target:
                       entity_id: !input linked_device_1
-      - conditions:
-          - condition: state
-            entity_id: !input relay_1_mode
-            state: "off"
-        sequence:
+                    continue_on_error: true # Non-blocking cleanup action
+        else:
           - service: homeassistant.turn_off
             target:
               entity_id: !input relay_1_switch
 
-  # --- Channel 2 ---
-  - if:
-      - condition: template
-        value_template: "{{ r2_s != none and r2_s != [] }}"
-    then:
-      - choose:
-          - conditions:
-              - condition: state
-                entity_id: !input relay_2_mode
-                state: "on"
-            sequence:
+      # --- Channel 2 ---
+      - if:
+          - condition: template
+            value_template: "{{ r2_s != none and r2_s != [] }}"
+        then:
+          - if:
+              - condition: template
+                value_template: "{{ r2_m == 'on' }}"
+            then:
               - service: homeassistant.turn_on
                 target:
                   entity_id: !input relay_2_switch
@@ -235,10 +255,16 @@ action:
                   - condition: template
                     value_template: "{{ l_d2 != none and l_d2 != [] }}"
                 then:
-                  - delay: "{{ s_delay }}"
+                  - wait_for_trigger:
+                      - platform: state
+                        entity_id: !input linked_device_2
+                        not_from: [unavailable, unknown]
+                    timeout: "{{ s_delay }}"
+                    continue_on_timeout: true
                   - service: homeassistant.turn_on
                     target:
                       entity_id: !input linked_device_2
+                    continue_on_error: true
                   - if:
                       - condition: template
                         value_template: "{{ not k_l2 }}"
@@ -247,26 +273,21 @@ action:
                       - service: homeassistant.turn_off
                         target:
                           entity_id: !input linked_device_2
-          - conditions:
-              - condition: state
-                entity_id: !input relay_2_mode
-                state: "off"
-            sequence:
+                        continue_on_error: true
+            else:
               - service: homeassistant.turn_off
                 target:
                   entity_id: !input relay_2_switch
 
-  # --- Channel 3 ---
-  - if:
-      - condition: template
-        value_template: "{{ r3_s != none and r3_s != [] }}"
-    then:
-      - choose:
-          - conditions:
-              - condition: state
-                entity_id: !input relay_3_mode
-                state: "on"
-            sequence:
+      # --- Channel 3 ---
+      - if:
+          - condition: template
+            value_template: "{{ r3_s != none and r3_s != [] }}"
+        then:
+          - if:
+              - condition: template
+                value_template: "{{ r3_m == 'on' }}"
+            then:
               - service: homeassistant.turn_on
                 target:
                   entity_id: !input relay_3_switch
@@ -274,10 +295,16 @@ action:
                   - condition: template
                     value_template: "{{ l_d3 != none and l_d3 != [] }}"
                 then:
-                  - delay: "{{ s_delay }}"
+                  - wait_for_trigger:
+                      - platform: state
+                        entity_id: !input linked_device_3
+                        not_from: [unavailable, unknown]
+                    timeout: "{{ s_delay }}"
+                    continue_on_timeout: true
                   - service: homeassistant.turn_on
                     target:
                       entity_id: !input linked_device_3
+                    continue_on_error: true
                   - if:
                       - condition: template
                         value_template: "{{ not k_l3 }}"
@@ -286,26 +313,21 @@ action:
                       - service: homeassistant.turn_off
                         target:
                           entity_id: !input linked_device_3
-          - conditions:
-              - condition: state
-                entity_id: !input relay_3_mode
-                state: "off"
-            sequence:
+                        continue_on_error: true
+            else:
               - service: homeassistant.turn_off
                 target:
                   entity_id: !input relay_3_switch
 
-  # --- Channel 4 ---
-  - if:
-      - condition: template
-        value_template: "{{ r4_s != none and r4_s != [] }}"
-    then:
-      - choose:
-          - conditions:
-              - condition: state
-                entity_id: !input relay_4_mode
-                state: "on"
-            sequence:
+      # --- Channel 4 ---
+      - if:
+          - condition: template
+            value_template: "{{ r4_s != none and r4_s != [] }}"
+        then:
+          - if:
+              - condition: template
+                value_template: "{{ r4_m == 'on' }}"
+            then:
               - service: homeassistant.turn_on
                 target:
                   entity_id: !input relay_4_switch
@@ -313,10 +335,16 @@ action:
                   - condition: template
                     value_template: "{{ l_d4 != none and l_d4 != [] }}"
                 then:
-                  - delay: "{{ s_delay }}"
+                  - wait_for_trigger:
+                      - platform: state
+                        entity_id: !input linked_device_4
+                        not_from: [unavailable, unknown]
+                    timeout: "{{ s_delay }}"
+                    continue_on_timeout: true
                   - service: homeassistant.turn_on
                     target:
                       entity_id: !input linked_device_4
+                    continue_on_error: true
                   - if:
                       - condition: template
                         value_template: "{{ not k_l4 }}"
@@ -325,15 +353,13 @@ action:
                       - service: homeassistant.turn_off
                         target:
                           entity_id: !input linked_device_4
-          - conditions:
-              - condition: state
-                entity_id: !input relay_4_mode
-                state: "off"
-            sequence:
+                        continue_on_error: true
+            else:
               - service: homeassistant.turn_off
                 target:
                   entity_id: !input relay_4_switch
 
+  # Cleanup: Status light turns off only after all parallel sequences finish
   - if:
       - condition: template
         value_template: "{{ s_light != none and s_light != [] }}"
