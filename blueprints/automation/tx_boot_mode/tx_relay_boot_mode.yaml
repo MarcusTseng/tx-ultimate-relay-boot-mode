@@ -1,7 +1,7 @@
 blueprint:
   name: "TX-Ultimate-Easy Enhanced Boot Restorer"
   description: |
-    ### (Version: 1.3.7)
+    ### (Version: 1.3.8)
     
     This blueprint acts as a comprehensive dynamic management layer for the **TX-Ultimate-Easy** (by edwardtfn). While the ESPHome firmware handles local hardware logic, this blueprint provides:
     
@@ -9,7 +9,7 @@ blueprint:
     * **2. Reconnection Sync**: Automatically restores states when the device recovers from an 'unavailable' state.
     * **3. Parallel Processing**: All 4 channels operate independently. A delay on one channel will not block the others.
     * **4. Intelligent Timing & Availability**: 
-        * **Initial Delay**: Stability wait after the T5 boots (Optimized Range: 0-10s).
+        * **Initial Delay**: Stability wait after the T5 boots (Optimized Range: 0-30s).
         * **Smart Wait**: Waits for the linked device to become "available" before syncing (Optimized Range: 0-30s).
     * **5. Fault-Tolerant Sync**: Linked device actions are non-blocking. If a command fails (e.g., Matter timeout), the automation continues without erroring out.
     * **6. Stealth Mode (Status Cleanup)**: Automatically turns off the LED ring indicator after all sequences complete.
@@ -35,7 +35,7 @@ blueprint:
       selector:
         number:
           min: 0
-          max: 10
+          max: 30
           unit_of_measurement: seconds
           mode: slider
     sync_delay:
@@ -158,7 +158,7 @@ blueprint:
         entity:
           domain: light
 
-mode: restart
+mode: single
 
 variables:
   r1_m: !input relay_1_mode
